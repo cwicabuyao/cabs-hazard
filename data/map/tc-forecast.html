@@ -1,82 +1,153 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Himawari Satellite — Editable Overlay Map</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <style>
-    html, body { height: 100%; margin: 0; background: #000; }
-    #map { width: 100%; height: 100%; }
-    .info {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      z-index: 9999;
-      background: rgba(255,255,255,0.9);
-      padding: 6px 10px;
-      border-radius: 6px;
-      font-family: system-ui, sans-serif;
-      font-size: 14px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tropical Cyclone Track Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #000;
+        }
+        #storm-map {
+            position: absolute;
+            top:0;
+            left:0;
+            width:100%;
+            height:100%;
+            margin:0;
+            padding:0;
+            z-index:1;
+        }
+        
+        /* Custom Icon for Forecast Dots: White dot with black text (cleaner) */
+        .forecast-dot {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #FFF; /* Pure White Dot */
+            border: 1.5px solid white;
+            color: #000; /* Black text color for contrast */
+            font-size: 10px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 0 5px rgba(255, 255, 255, 0.7); /* Pinanatili ko ang light shadow for visibility */
+            /* Removed animation as per the latest code provided */
+            animation: none;
+        }
+
+        /* Custom style for Popups (Dark background, white text) */
+        .leaflet-popup-content-wrapper {
+            background: rgba(30, 30, 30, 0.95);
+            color: #fff;
+            border-radius: 5px;
+        }
+        .leaflet-popup-tip {
+            background: rgba(30, 30, 30, 0.95);
+        }
+        .popup-content strong {
+            color: #ffda6b; /* Yellow accent color */
+        }
+    </style>
 </head>
 <body>
-  <div id="map"></div>
 
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script>
-    // Initialize map centered around the Philippines
-    const map = L.map('map', {
-      center: [12.8797, 121.7740],
-      zoom: 10,
-      minZoom: 1,
-      maxZoom: 10
+<div id="storm-map"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+(function(){
+    // 1. STORM DATA (Verified based on the image)
+    const STORM_DATA = [
+        { hours: 6, datetime: "12-Hour Forecast 08:00 PM 18 October 2025", lat: 13.7, lon: 123.2, location: "Vicinity of Calabanga, Camarines Sur", cat: "TS", msw: 65, movement: "NWW 25" },
+        { hours: 12, datetime: "12-Hour Forecast 08:00 AM 19 October 2025", lat: 15.0, lon: 121.8, location: "Over the coastal waters of Ponukulan, Pollilo Islands, Quezon", cat: "TS", msw: 75, movement: "NW 20" },
+        { hours: 24, datetime: "24-Hour Forecast 08:00 PM 19 October 2025", lat: 16.8, lon: 119.9, location: "Over the coastal waters of Bolaoan, La Union", cat: "TS", msw: 75, movement: "NW 25" },
+        { hours: 36, datetime: "36-Hour Forecast 08:00 AM 20 October 2025", lat: 18.0, lon: 117.2, location: "345 km West of Sinait, Ilocos Sur (OUTSIDE PAR)", cat: "TS", msw: 85, movement: "WNW 25" },
+        { hours: 48, datetime: "48-Hour Forecast 08:00 PM 20 October 2025", lat: 18.4, lon: 115.5, location: "530 km West of Sinait, Ilocos Sur (OUTSIDE PAR)", cat: "STS", msw: 95, movement: "WNW 15" },
+        { hours: 60, datetime: "60-Hour Forecast 08:00 AM 21 October 2025", lat: 18.6, lon: 114.3, location: "655 km West of Sinait, Ilocos Sur (OUTSIDE PAR)", cat: "STS", msw: 95, movement: "W 10" },
+        { hours: 72, datetime: "72-Hour Forecast 08:00 PM 21 October 2025", lat: 18.4, lon: 113.7, location: "715 km West of Sinait, Ilocos Sur (OUTSIDE PAR)", cat: "STS", msw: 100, movement: "WSW Slowly" },
+        { hours: 96, datetime: "96-Hour Forecast 08:00 PM 22 October 2025", lat: 16.7, lon: 111.9, location: "950 km West of Northern (OUTSIDE PAR)", cat: "STS", msw: 100, movement: "SW 10" },
+        { hours: 120, datetime: "120-Hour Forecast 08:00 PM 23 October 2025", lat: 14.8, lon: 109.5, location: "1,125 km West of Central Luzon (OUTSIDE PAR)", cat: "STS", msw: 85, movement: "SW 15" }
+    ];
+
+    // 2. Map Initialization
+    const map = L.map('storm-map', {
+        center:[13.7, 123.2], 
+        zoom: 6,
+        zoomControl: true
     });
 
-    // Base map — Dark Style (OpenStreetMap via CartoDB)
+    // 3. Dark OpenStreetMap Tile Layer
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; OpenStreetMap contributors & CartoDB',
-      subdomains: 'abcd',
-      maxZoom: 19
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        maxZoom: 19
     }).addTo(map);
 
-    // Himawari overlay link
-    const himawariUrl = "https://pubfiles.pagasa.dost.gov.ph/tamss/weather/track_ramil.png";
-
-    // EDIT HERE: Overlay bounds
-    // These coordinates define where the GIF image is drawn on the map.
-    // You can adjust these numbers to shift or resize the image:
-    //   ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
-    const bounds = [
-      [  3.5, 105.05 ],  // Southwest corner (latitude, longitude)
-      [  29.5, 140.5 ]  // Northeast corner (latitude, longitude)
+    // 4. Philippine Area of Responsibility (PAR) - Red Line Only
+    const PARcoords = [
+        [5,115],[15,115],[21,120],[25,120],[25,135],[5,135],[5,115]
     ];
-    // ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
-    // Try adjusting:
-    //  - Increase 1st number in first pair (4.0) → move image UP
-    //  - Decrease 1st number → move DOWN
-    //  - Increase 2nd number in first pair (112.0) → move RIGHT
-    //  - Decrease → move LEFT
-    //  - To make the image WIDER → make 2nd longitude farther apart (e.g., 110 → 135)
-    //  - To make it TALLER → make latitude range larger (e.g., 2 → 25)
-
-    // Add overlay
-    const himawariOverlay = L.imageOverlay(himawariUrl, bounds, {
-      opacity: 0.990,  // EDIT: Transparency (0 = invisible, 1 = solid)
-      interactive: false
+    
+    L.polygon(PARcoords, {
+        color: "red",
+        weight: 2,
+        fillOpacity: 0 // Walang fill/polygon
     }).addTo(map);
 
-    // Fit map to the overlay area
-    map.fitBounds(bounds);
 
-    //Optional: auto-refresh every 10 minutes (you can edit the interval)
-    const refreshInterval = 180000; // in ms → 180000 = 3 minutes
-    setInterval(() => {
-      himawariOverlay.setUrl(`${himawariUrl}?t=${Date.now()}`);
-      console.log("Himawari image refreshed:", new Date().toLocaleTimeString("en-PH", { timeZone: "Asia/Manila" }));
-    }, refreshInterval);
-  </script>
+    // 5. Forecast Track Line (White, 1px)
+    const trackCoords = [];
+    STORM_DATA.forEach(point => trackCoords.push([point.lat, point.lon]));
+
+    L.polyline(trackCoords, {
+        color: 'white', 
+        weight: 1, /* 1px line as requested */
+        opacity: 0.9
+    }).addTo(map);
+
+    // 6. Plot Forecast Markers (Dots)
+    STORM_DATA.forEach(point => {
+        // Custom Icon setup: white dot (22x22) with black TS/STS text
+        const dotIcon = L.divIcon({
+            className: "",
+            html: `<div class="forecast-dot">${point.cat}</div>`,
+            iconSize: [22, 22],
+            iconAnchor: [11, 11] // Center the icon
+        });
+
+        const marker = L.marker([point.lat, point.lon], {icon: dotIcon}).addTo(map);
+
+        // Popup Content (Filipino terms as requested)
+        const popupContent = `
+            <div class="popup-content">
+                <strong>TRACK AND INTENSITY FORECAST</strong>
+                <hr style="border-top: 1px solid #777; margin: 5px 0;">
+                Date and Time: ${point.datetime}<br>
+                Location: ${point.location}<br>
+                Intensity: ${point.cat} (${point.msw} km/h)<br>
+                Movement: ${point.movement}<br>
+                <hr style="border-top: 1px solid #777; margin: 5px 0;">
+                <strong>Source: DOST-PAGASA<strong> <br> last update: 2344101825
+            </div>
+        `;
+        
+        marker.bindPopup(popupContent);
+    });
+    
+    // Fit the map view to the entire track
+    if(trackCoords.length > 0) {
+        map.fitBounds(trackCoords, {padding: [50, 50]});
+    }
+
+})();
+</script>
+
 </body>
 </html>
