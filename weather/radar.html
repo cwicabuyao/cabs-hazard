@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CABS-HAZARDS</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      background: #222;
+      color: white;
+      overflow: hidden;
+    }
+
+    /* Sidebar / Menu */
+    #sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 320px;
+      height: 100%;
+      background: rgba(30, 30, 30, 0.9);
+      padding: 25px;
+      transition: all 0.4s ease;
+      z-index: 10;
+    }
+
+    #sidebar.hide {
+      left: -320px;
+    }
+
+    #sidebar h1 {
+      font-size: 25px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    #sidebar h1 img {
+      width: 40px;
+      height: 40px;
+      object-fit: contain;
+    }
+
+    #sidebar p {
+      font-size: 15px;
+      opacity: 0.8;
+      margin-bottom: 20px;
+    }
+
+    .time-box {
+      background: red;
+      color: white;
+      text-align: center;
+      padding: 10px;
+      border-radius: 6px;
+      font-weight: 800;
+      margin-bottom: 15px;
+    }
+
+    .time-box .date {
+      font-size: 15px;
+      opacity: 0.8;
+    }
+
+    .menu-section {
+      margin-top: 20px;
+    }
+
+    .menu-section h3 {
+      font-size: 16px;
+      margin-bottom: 5px;
+      cursor: pointer;
+      background: rgba(255,255,255,0.05);
+      padding: 8px;
+      border-radius: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .menu-section h3:hover {
+      background: rgba(255,255,255,0.1);
+    }
+
+    .menu-section ul {
+      list-style: none;
+      margin-bottom: 15px;
+      margin-left: 10px;
+      display: none;
+    }
+
+    .menu-section li {
+      font-size: 14px;
+      opacity: 0.9;
+      margin: 6px 0;
+    }
+
+    .menu-section a {
+      color: white;
+      text-decoration: none;
+    }
+
+    .menu-section a:hover {
+      text-decoration: underline;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100vh;
+      border: none;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Floating button (bottom-right corner) */
+    #toggleBtn {
+      position: fixed;
+      bottom: 25px;
+      right: 25px;
+      width: 55px;
+      height: 55px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.9);
+      color: #111;
+      font-size: 26px;
+      border: none;
+      cursor: pointer;
+      z-index: 20;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
+      transition: 0.3s;
+    }
+
+    #toggleBtn:hover {
+      background: #00bcd4;
+      color: white;
+    }
+
+    @media (max-width: 768px) {
+      #sidebar {
+        width: 260px;
+      }
+      #sidebar.hide {
+        left: -260px;
+      }
+      #sidebar h1 {
+        font-size: 18px;
+      }
+      .menu-section li {
+        font-size: 13px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <div id="sidebar">
+    <h1> <img src="logo3.png" alt="Logo">
+      CABS-HAZARDS</h1>
+    <p>A Meteorological & Geological Hazards Map for City of Cabuyao</p>
+
+    <div class="time-box">
+      <div id="time">--:--:--</div>
+      <div class="date" id="date">Loading...</div>
+    </div>
+
+    <div class="menu-section">
+      <h3>WEATHER <span>▸</span></h3>
+      <ul>
+        <li><a href="https://cwicabuyao.github.io/cabs-hazard/weather/daily">Daily Weather</a></li>
+        <li><a href="https://cwicabuyao.github.io/cabs-hazard/weather/observed">Weather Observed</a></li>
+        <li><a href="https://cwicabuyao.github.io/cabs-hazard/weather/outlook">03-Days Weather Outlook</a></li>
+        <li><a href="https://cwicabuyao.github.io/cabs-hazard/weather/satellite">Satellite Imagery</a></li>
+        <li><a href="https://cwicabuyao.github.io/cabs-hazard/weather/radar">Radar</a></li>
+      </ul>
+
+      <h3>CLIMATE <span>▸</span></h3>
+      <ul>
+        <li><a href="https://cwicabuyao.github.io/cabs-hazard/climate/tc-active">Active Tropical Cyclone</a></li>
+        <li><a href="https://cwicabuyao.github.io/cabs-hazard/climate/tc-forecast">Tropical Cyclone Forecast</a></li>
+        <li><a href="https://cwicabuyao.github.io/cabs-hazard/climate/tc-formation">Tropical Cyclone Formation</a></li>
+        <li><a href="https://cwicabuyao.github.io/cabs-hazard/climate/rainfall">Rainfall Accumulated</a></li>
+        <li><a href="https://cwicabuyao.github.io/cabs-hazard/climate/wind">Wind Accumulated</a></li>
+        <li><a href="https://cwicabuyao.github.io/cabs-hazard/climate/temperature">Temperature Accumulated</a></li>
+        <li><a href="https://cwicabuyao.github.io/cabs-hazard/climate/enso">ENSO</a></li>
+      </ul>
+
+      <h3>HYDROLOGICAL <span>▸</span></h3>
+      <ul>
+        <li><a href="https://cwicabuyao.github.io/cabs-hazard/hydrological/advisory">Flood Advisory</a></li>
+        <li><a href="https://cwicabuyao.github.io/cabs-hazard/hydrological/reported">Flooding Reported</a></li>
+        <li><a href="https://cwicabuyao.github.io/cabs-hazard/hydrological/hazard">Flooding Hazards</a></li>
+        <li><a href="https://cwicabuyao.github.io/cabs-hazard/hydrological/river">River Basis</a></li>
+        <li><a href="https://cwicabuyao.github.io/cabs-hazard/hydrological/wave">Laguna De Bay Current Wave</a></li>
+      </ul>
+
+      <h3>EARTHQUAKE <span>▸</span></h3>
+      <ul>
+        <li><a href="https://cwicabuyao.github.io/cabs-hazard/earthquake/phivocs/latest">DOST-PHIVOCS Seismic Map</a></li>
+        <li><a href="https://cwicabuyao.github.io/cabs-hazard/earthquake/usgs/latest">US-GS Seismic Map</a></li>
+        <li><a href="https://cwicabuyao.github.io/cabs-hazard/earthquake/hazard">Intesity Hazard Map</a></li>
+        <li><a href="https://cwicabuyao.github.io/cabs-hazard/earthquake/fault">West Valley Fault: City of Cabuyao</a></li>
+      </ul>
+ 
+           <h3>ACCOUNT<span>▸</span></h3>
+      <ul>
+        <li><a href="https://cwicabuyao.github.io/cabs-hazard/login">Login</a></li>
+        <li><a href="https://cwicabuyao.github.io/cabs-hazard/register">Register</a></li>
+        <li><a href="https://cwicabuyao.github.io/cabs-hazard/about">About</a></li>
+        <li><a href="https://cwicabuyao.github.io/cabs-hazard/donate">Donate</a></li>
+        <p><strong>EXCLUSIVE FOR OFFICIAL MEMBERS ONLY, AND LGU CAN SET UP AN ACCOUNT.</strong> Some features and data have privacy settings that restrict viewing.</p>
+      </ul>
+      
+    </div>
+    
+    <br>
+    
+    <p><strong>CABS-HAZARD</strong> is a dynamic meteorological and geological hazard map developed by cwi_cabuyao to provide fast, reliable updates on weather, climate and earthquake risks. It helps residents stay informed, aware, and prepared against potential hazards in City of Cabuyao.</p>
+    
+  </div>
+
+  <!-- Floating menu toggle button -->
+  <button id="toggleBtn">☰</button>
+
+  <!-- Map frame -->
+  <style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: black;
+    overflow: hidden;
+  }
+</style>
+
+<iframe 
+  src="https://www.rainviewer.com/map.html?loc=14.212,120.9912,9.22037188693919&oCS=1&oF=true&c=3&o=83&lm=1&layer=radar&sm=1&sn=1" 
+  style="border:0; width:100vw; height:100vh; display:block;" 
+  allowfullscreen>
+</iframe>
+
+  <script>
+    // Sidebar toggle
+    const sidebar = document.getElementById('sidebar');
+    const toggleBtn = document.getElementById('toggleBtn');
+    toggleBtn.addEventListener('click', () => {
+      sidebar.classList.toggle('hide');
+    });
+
+    // Philippine Standard Time
+    function updateTime() {
+      const now = new Date();
+      const options = { timeZone: 'Asia/Manila', hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' };
+      const optionsDate = { timeZone: 'Asia/Manila', day: 'numeric', month: 'long', year: 'numeric' };
+      document.getElementById('time').textContent = now.toLocaleTimeString('en-US', options);
+      document.getElementById('date').textContent = now.toLocaleDateString('en-US', optionsDate);
+    }
+    setInterval(updateTime, 1000);
+    updateTime();
+
+    // Collapsible menu
+    document.querySelectorAll('.menu-section h3').forEach(header => {
+      header.addEventListener('click', () => {
+        const ul = header.nextElementSibling;
+        const isOpen = ul.style.display === 'block';
+        document.querySelectorAll('.menu-section ul').forEach(list => list.style.display = 'none');
+        document.querySelectorAll('.menu-section h3 span').forEach(icon => icon.textContent = '▸');
+        if (!isOpen) {
+          ul.style.display = 'block';
+          header.querySelector('span').textContent = '▾';
+        }
+      });
+    });
+
+    // Floater close button
+    const floater = document.getElementById('floater');
+    document.getElementById('closeFloater').addEventListener('click', () => {
+      floater.style.opacity = '0';
+      floater.style.transform = 'translateY(20px)';
+      setTimeout(() => floater.style.display = 'none', 300);
+    });
+  </script>
+</body>
+</html>
