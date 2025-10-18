@@ -25,12 +25,12 @@
         }
         /* Kasalukuyang Posisyon: Pulsing Red Dot */
         .pulse {
-            width: 12px;
-            height: 12px;
+            width: 15px;
+            height: 15px;
             margin-left: -6px;
             margin-top: -6px;
             border-radius: 50%;
-            background: red;
+            background: yellow;
             position: relative;
             box-shadow: 0 0 10px rgba(255,0,0,0.8);
             cursor: pointer;
@@ -105,10 +105,10 @@
     
     // BINAGO: Gawing Polygon na may kulay (fill) at outline.
     L.polygon(PARcoords, {
-        color: "#ffda6b",      // Kulay ng linya (outline)
+        color: "red",      // Kulay ng linya (outline)
         weight: 2,             // kapal ng linya
         fillColor: "#ffda6b",  // Kulay ng fill
-        fillOpacity: 0.01      // Mababang opacity (semi-transparent)
+        fillOpacity: 0.00      // Mababang opacity (semi-transparent)
     }).addTo(map);
 
     let txt="";
@@ -178,8 +178,9 @@
 
         // Popup para sa Current Position: Ipakita ang buong raw text file
         const popupContent = `<div class="jtwc-popup">
-                              <strong>CURRENT CYCLONE WARNING (TEXT DATA)</strong>
+                              <strong>CURRENT CYCLONE TRACK RAMIL</strong>
                               <pre>${data.rawText.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>
+                              Source: JTWC HAWAII CENTER
                             </div>`;
         
         currentMarker.bindPopup(popupContent);
