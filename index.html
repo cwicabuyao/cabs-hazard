@@ -3,7 +3,7 @@
   <div class="loading-overlay"></div>
   <div class="loading-content">
     <h1 class="loading-title">CABS-HAZARDS</h1>
-    <p class="loading-bio">A Meteorological & Geological Hazards Map for City of Cabuyao</p>
+    <p class="loading-bio">A Meteorological & Geological Hazards Map for <br> CITY OF CABUYAO</p>
     <div class="progress-container">
       <div id="progress-bar"></div>
       <span id="progress-text">0%</span>
@@ -55,7 +55,7 @@
   }
   
   .loading-bio {
-    font-size: 14px;
+    font-size: 13px;
     font-style: bold;
     font-weight: ;
     margin-bottom: 05px;
@@ -97,7 +97,7 @@
   const screen = document.getElementById("loading-screen");
 
   const interval = setInterval(() => {
-    progress += 0.5; // 5 seconds total
+    progress += 3; // 5 seconds total
     if (progress > 100) progress = 100;
 
     bar.style.width = progress + "%";
@@ -355,7 +355,7 @@
   <button id="toggleBtn">☰</button>
 
   <!-- Map frame -->
-  <iframe src="https://api.maptiler.com/maps/0199f37c-3fd3-7c9c-a0dc-9defd2a0e3f2/?key=1uXJufymofNDgGrvPfCm#11.4/14.22244/121.10577"></iframe>
+  <iframe src="https://api.maptiler.com/maps/0199f37c-3fd3-7c9c-a0dc-9defd2a0e3f2/?key=1uXJufymofNDgGrvPfCm#12.5/14.26968/121.13718"></iframe>
 
   <script>
     // Sidebar toggle
