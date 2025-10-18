@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tropical Cyclone Tracker</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #000;
+        }
+        #storm-map {
+            position: absolute;
+            top:0;
+            left:0;
+            width:100%;
+            height:100%;
+            margin:0;
+            padding:0;
+            z-index:1;
+        }
+        /* Kasalukuyang Posisyon: Pulsing Red Dot */
+        .pulse {
+            width: 12px;
+            height: 12px;
+            margin-left: -6px;
+            margin-top: -6px;
+            border-radius: 50%;
+            background: red;
+            position: relative;
+            box-shadow: 0 0 10px rgba(255,0,0,0.8);
+            cursor: pointer;
+        }
+        .pulse::after {
+            content: "";
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+            background: rgba(255,0,0,0.5);
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            70% { transform: scale(2.5); opacity: 0; }
+            100% { opacity: 0; }
+        }
+        /* Forecast Markers: Black Dot */
+        .forecast-dot {
+            width: 8px;
+            height: 8px;
+            margin-left: -4px;
+            margin-top: -4px;
+            border-radius: 50%;
+            background: black;
+            border: 1px solid white;
+            cursor: pointer;
+        }
+        /* Popup styling para mas maganda basahin ang text file */
+        .leaflet-popup-content-wrapper, .leaflet-popup-tip {
+            background: rgba(255, 255, 255, 0.95);
+            color: #333;
+        }
+        .jtwc-popup pre {
+            margin: 0;
+            padding: 5px;
+            font-size: 10px;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+            background: #f4f4f4;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+
+<div id="storm-map"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+(async function(){
+    // URL ng latest warning text file mula sa JTWC
+    const JTWC_URL = "https://www.metoc.navy.mil/jtwc/products/wp3025web.txt";
+
+    const map = L.map('storm-map', {
+        center:[13,122],
+        zoom:5,
+        zoomControl:true
+    });
+
+    // Dark base map
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        maxZoom:19
+    }).addTo(map);
+
+    // Philippine Area of Responsibility (PAR)
+    const PARcoords = [
+        [5,115],[15,115],[21,120],[25,120],[25,135],[5,135],[5,115]
+    ];
+    
+    // BINAGO: Gawing Polygon na may kulay (fill) at outline.
+    L.polygon(PARcoords, {
+        color: "#ffda6b",      // Kulay ng linya (outline)
+        weight: 2,             // kapal ng linya
+        fillColor: "#ffda6b",  // Kulay ng fill
+        fillOpacity: 0.05      // Mababang opacity (semi-transparent)
+    }).addTo(map);
+
+    let txt="";
+    try {
+        const res = await fetch(JTWC_URL);
+        if(!res.ok) throw new Error("JTWC fetch failed with status " + res.status);
+        txt = await res.text();
+    } catch(e){ 
+        console.error("Failed JTWC fetch:", e);
+        alert("WARNING: Failed to load JTWC data. The map will show the default view only.");
+        return; 
+    }
+
+    // FUNCTION: Kukunin ang Current Position AT Forecast Positions mula sa JTWC text
+    function parseJTWC(text){
+        const data = { 
+            current: null,
+            forecasts: [],
+            rawText: text 
+        };
+
+        const lines = text.split("\n");
+        
+        // 1. Kuhanin ang Current Position (NEAR line)
+        for(const line of lines){
+            // Gamitin ang line na may 'NEAR' at coordinates
+            const m = line.match(/NEAR\s+([0-9.]+)([N,S])\s+([0-9.]+)([E,W])/i);
+            if(m){
+                // Convert N/S/E/W to positive/negative values
+                const lat = parseFloat(m[1]) * (m[2].toUpperCase() === 'S' ? -1 : 1);
+                const lon = parseFloat(m[3]) * (m[4].toUpperCase() === 'W' ? -1 : 1);
+                data.current = { lat, lon, info: line.trim() }; 
+                break; 
+            }
+        }
+
+        // 2. Kuhanin ang Forecast Positions (PROGNOSTIC POSITION line)
+        // Ang Regex ay hanapin ang "PROGNOSTIC POSITION:", oras/petsa, coordinates, at KTS wind speed
+        const progRegex = /PROGNOSTIC POSITION:\s*(\d{2}\/\d{4}Z)\s*(\d+\.\d+)([N,S])\s*(\d+\.\d+)([E,W])\s*(\d+)\s*KTS/i;
+        for(const line of lines){
+            const m = line.match(progRegex);
+            if(m){
+                const time = m[1];
+                const lat = parseFloat(m[2]) * (m[3].toUpperCase() === 'S' ? -1 : 1);
+                const lon = parseFloat(m[4]) * (m[5].toUpperCase() === 'W' ? -1 : 1);
+                const wind = m[6];
+                
+                data.forecasts.push({
+                    lat, 
+                    lon, 
+                    time, 
+                    wind: `${wind} KTS`,
+                    info: line.trim() 
+                });
+            }
+        }
+
+        return data;
+    }
+
+    const data = parseJTWC(txt);
+
+    if(data.current){
+        // 1. CURRENT POSITION (Red Pulsing Dot)
+        const stormIcon = L.divIcon({className:"",html:`<div class="pulse"></div>`});
+        const currentMarker = L.marker([data.current.lat,data.current.lon],{icon:stormIcon}).addTo(map);
+
+        // Popup para sa Current Position: Ipakita ang buong raw text file
+        const popupContent = `<div class="jtwc-popup">
+                              <strong>CURRENT CYCLONE WARNING (TEXT DATA)</strong>
+                              <pre>${data.rawText.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>
+                            </div>`;
+        
+        currentMarker.bindPopup(popupContent);
+
+        // Center ang mapa sa kasalukuyang posisyon
+        map.setView([data.current.lat,data.current.lon],6);
+    }
+
+    if(data.current && data.forecasts.length > 0){
+        
+        // Simulan ang track mula sa current position
+        const trackCoords = [[data.current.lat, data.current.lon]];
+        data.forecasts.forEach(f => trackCoords.push([f.lat, f.lon]));
+
+        // 2. FORECAST TRACK (Dashed Cyan Line)
+        L.polyline(trackCoords, {
+            color: 'cyan', 
+            weight: 3, 
+            opacity: 0.8, 
+            dashArray: '8, 8' // Mas malaking dashed line para mas makita
+        }).addTo(map);
+        
+        // 3. FORECAST MARKERS (Black Dots)
+        const forecastIcon = L.divIcon({className:"",html:`<div class="forecast-dot"></div>`});
+        
+        data.forecasts.forEach(f => {
+            const forecastMarker = L.marker([f.lat, f.lon], {icon: forecastIcon}).addTo(map);
+            
+            // Popup para sa bawat Forecast Point (Info galing sa line data)
+            const fPopupContent = `<strong>FORECAST POINT</strong><br>
+                                 **Time:** ${f.time}<br>
+                                 **Location:** ${f.lat.toFixed(1)}°N, ${f.lon.toFixed(1)}°E<br>
+                                 **Wind:** ${f.wind}<br><br>
+                                 <small><em>Raw Line Data: ${f.info}</em></small>`;
+            
+            forecastMarker.bindPopup(fPopupContent);
+        });
+    }
+})();
+</script>
+
+</body>
+</html>
