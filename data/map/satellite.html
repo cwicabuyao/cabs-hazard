@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Himawari Satellite — Editable Overlay Map</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    html, body { height: 100%; margin: 0; background: #000; }
+    #map { width: 100%; height: 100%; }
+    .info {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 9999;
+      background: rgba(255,255,255,0.9);
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-family: system-ui, sans-serif;
+      font-size: 14px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    // Initialize map centered around the Philippines
+    const map = L.map('map', {
+      center: [12.8797, 121.7740],
+      zoom: 10,
+      minZoom: 1,
+      maxZoom: 10
+    });
+
+    // Base map — Dark Style (OpenStreetMap via CartoDB)
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; OpenStreetMap contributors & CartoDB',
+      subdomains: 'abcd',
+      maxZoom: 19
+    }).addTo(map);
+
+    // Himawari overlay link
+    const himawariUrl = "https://src.meteopilipinas.gov.ph/repo/himawari/24hour/irsml/latestHIM_irsml.gif";
+
+    // EDIT HERE: Overlay bounds
+    // These coordinates define where the GIF image is drawn on the map.
+    // You can adjust these numbers to shift or resize the image:
+    //   ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
+    const bounds = [
+      [  0.0, 110.00 ],  // Southwest corner (latitude, longitude)
+      [  29.0, 140.0 ]  // Northeast corner (latitude, longitude)
+    ];
+    // ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
+    // Try adjusting:
+    //  - Increase 1st number in first pair (4.0) → move image UP
+    //  - Decrease 1st number → move DOWN
+    //  - Increase 2nd number in first pair (112.0) → move RIGHT
+    //  - Decrease → move LEFT
+    //  - To make the image WIDER → make 2nd longitude farther apart (e.g., 110 → 135)
+    //  - To make it TALLER → make latitude range larger (e.g., 2 → 25)
+
+    // Add overlay
+    const himawariOverlay = L.imageOverlay(himawariUrl, bounds, {
+      opacity: 0.60,  // EDIT: Transparency (0 = invisible, 1 = solid)
+      interactive: false
+    }).addTo(map);
+
+    // Fit map to the overlay area
+    map.fitBounds(bounds);
+
+    //Optional: auto-refresh every 10 minutes (you can edit the interval)
+    const refreshInterval = 180000; // in ms → 180000 = 3 minutes
+    setInterval(() => {
+      himawariOverlay.setUrl(`${himawariUrl}?t=${Date.now()}`);
+      console.log("Himawari image refreshed:", new Date().toLocaleTimeString("en-PH", { timeZone: "Asia/Manila" }));
+    }, refreshInterval);
+  </script>
+</body>
+</html>
