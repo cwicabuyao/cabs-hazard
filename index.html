@@ -1,9 +1,133 @@
+<!-- 🔹 Loading Screen Container -->
+<div id="loading-screen">
+  <div class="loading-overlay"></div>
+  <div class="loading-content">
+    <h1 class="loading-title">CABS-HAZARDS</h1>
+    <p class="loading-bio">A Meteorological & Geological Hazards Map for City of Cabuyao</p>
+    <div class="progress-container">
+      <div id="progress-bar"></div>
+      <span id="progress-text">0%</span>
+    </div>
+  </div>
+</div>
+
+<!-- 🔹 Styles -->
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@1,700&display=swap');
+
+  #loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url('image1.png') center center / cover no-repeat;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 99999;
+    overflow: hidden;
+  }
+
+  /* Transparent black overlay (75%) */
+  .loading-overlay {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.75);
+    z-index: 1;
+  }
+
+  .loading-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    color: #fff;
+    font-family: 'Poppins', sans-serif;
+  }
+
+  .loading-title {
+    font-size: 2.5em;
+    font-style: italic;
+    font-weight: 700;
+    margin-bottom: -5px;
+    letter-spacing: 2px;
+  }
+  
+  .loading-bio {
+    font-size: 14px;
+    font-style: bold;
+    font-weight: ;
+    margin-bottom: 05px;
+    letter-spacing: 1px;
+  }
+
+  .progress-container {
+    position: relative;
+    width: 280px;
+    height: 20px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    margin: 0 auto;
+    overflow: hidden;
+  }
+
+  #progress-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, blue, red);
+    border-radius: 20px;
+    transition: width 0.1s linear;
+  }
+
+  #progress-text {
+    display: block;
+    margin-top: 10px;
+    font-weight: bold;
+    font-size: 1.1em;
+    letter-spacing: 1px;
+  }
+</style>
+
+<!-- 🔹 Script -->
+<script>
+  let progress = 0;
+  const bar = document.getElementById("progress-bar");
+  const text = document.getElementById("progress-text");
+  const screen = document.getElementById("loading-screen");
+
+  const interval = setInterval(() => {
+    progress += 0.5; // 5 seconds total
+    if (progress > 100) progress = 100;
+
+    bar.style.width = progress + "%";
+    text.textContent = progress + "%";
+
+    if (progress === 100) {
+      clearInterval(interval);
+      setTimeout(() => {
+        screen.style.transition = "opacity 0.8s ease";
+        screen.style.opacity = 0;
+        setTimeout(() => screen.style.display = "none", 800);
+      }, 300);
+    }
+  }, 100);
+</script>
+
+
+
+
+
+
+
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CABS-HAZARDS MAP</title>
+  <title>CABS-HAZARDS</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
     * {
@@ -214,6 +338,8 @@
       <ul>
         <li><a href="https://cwicabuyao.github.io/cabs-hazard/login">Login</a></li>
         <li><a href="https://cwicabuyao.github.io/cabs-hazard/register">Register</a></li>
+        <li><a href="https://cwicabuyao.github.io/cabs-hazard/about">About</a></li>
+        <li><a href="https://cwicabuyao.github.io/cabs-hazard/donate">Donate</a></li>
         <p><strong>EXCLUSIVE FOR OFFICIAL MEMBERS ONLY, AND LGU CAN SET UP AN ACCOUNT.</strong> Some features and data have privacy settings that restrict viewing.</p>
       </ul>
       
@@ -221,7 +347,7 @@
     
     <br>
     
-    <p><strong>CABS-HAZARD</strong> is a dynamic meteorological and geological hazard map developed by Cabuyao City Weather Information to provide fast, reliable updates on weather, climate and earthquake risks. It helps residents stay informed, aware, and prepared against potential hazards in City of Cabuyao.</p>
+    <p><strong>CABS-HAZARD</strong> is a dynamic meteorological and geological hazard map developed by cwi_cabuyao to provide fast, reliable updates on weather, climate and earthquake risks. It helps residents stay informed, aware, and prepared against potential hazards in City of Cabuyao.</p>
     
   </div>
 
